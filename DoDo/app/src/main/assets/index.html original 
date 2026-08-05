@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Productivity Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --text-light: #94a3b8;
+            --border: #334155;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: all 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 72px;
+            z-index: 99;
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px 8px;
+            border: none;
+            background: none;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+            min-width: 60px;
+        }
+
+        .tab-icon {
+            font-size: 1.3rem;
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Content */
+        .content {
+            padding: 16px;
+            padding-bottom: 100px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .card-meta {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .card-body {
+            color: var(--text);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-high { background: #fef2f2; color: #dc2626; }
+        .badge-medium { background: #fffbeb; color: #d97706; }
+        .badge-low { background: #f0fdf4; color: #16a34a; }
+        .badge-info { background: #eff6ff; color: #2563eb; }
+        .badge-purple { background: #f3e8ff; color: #7c3aed; }
+
+        body.dark .badge-high { background: #7f1d1d33; }
+        body.dark .badge-medium { background: #78350f33; }
+        body.dark .badge-low { background: #14532d33; }
+        body.dark .badge-info { background: #1e3a8a33; }
+        body.dark .badge-purple { background: #4c1d9533; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+        }
+
+        .btn-ghost:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .btn-danger {
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* FAB */
+        .fab-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 200;
+        }
+
+        .fab {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+        }
+
+        .fab.open {
+            transform: rotate(45deg);
+            background: var(--danger);
+        }
+
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .fab-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .fab-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .fab-label {
+            background: var(--card);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            white-space: nowrap;
+        }
+
+        .fab-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .fab-btn.journal { background: #8b5cf6; }
+        .fab-btn.diary { background: #06b6d4; }
+        .fab-btn.task { background: #10b981; }
+        .fab-btn.note { background: #f59e0b; }
+        .fab-btn.activity { background: #ec4899; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--card);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            border-radius: 24px 24px 0 0;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+            margin: 12px auto;
+        }
+
+        .modal-header {
+            padding: 8px 20px 16px;
+            text-align: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 0 20px 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: var(--card);
+            color: var(--text);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* Task Item */
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px;
+            background: var(--card);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+
+        .task-item.done {
+            opacity: 0.5;
+        }
+
+        .task-item.done .task-name {
+            text-decoration: line-through;
+        }
+
+        .checkbox {
+            width: 26px;
+            height: 26px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .task-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .task-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .task-info {
+            display: flex;
+            gap: 10px;
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* Countdown */
+        .countdown-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 24px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .countdown-value {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .countdown-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* Revision Alert */
+        .revision-alert {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        body.dark .revision-alert {
+            background: linear-gradient(135deg, #78350f33, #92400e33);
+        }
+
+        .revision-alert h3 {
+            color: #b45309;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Category Chips */
+        .chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: var(--border);
+            color: var(--text);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Empty State */
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        /* Settings */
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .setting-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Toggle */
+        .toggle {
+            width: 52px;
+            height: 28px;
+            background: var(--border);
+            border-radius: 28px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: var(--primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        /* Markdown Preview */
+        .md-preview {
+            background: var(--bg);
+            padding: 16px;
+            border-radius: 12px;
+            min-height: 100px;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .md-preview h1 { font-size: 1.4rem; margin: 8px 0; }
+        .md-preview h2 { font-size: 1.2rem; margin: 8px 0; }
+        .md-preview h3 { font-size: 1rem; margin: 8px 0; }
+        .md-preview ul { padding-left: 20px; }
+        .md-preview li { margin: 4px 0; }
+
+        /* Activity Item */
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .activity-item span:last-child {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        /* Swipe Actions */
+        .swipe-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 14px;
+            margin-bottom: 10px;
+        }
+
+        .swipe-actions {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .swipe-btn {
+            height: 100%;
+            padding: 0 20px;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        .swipe-btn.edit { background: var(--primary); }
+        .swipe-btn.delete { background: var(--danger); }
+
+        /* Group Header */
+        .group-header {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            padding: 12px 0 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Quick Stats Bar */
+        .quick-stats {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .quick-stat {
+            background: var(--card);
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            box-shadow: var(--shadow);
+        }
+
+        .quick-stat-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Mood Selector */
+        .mood-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mood-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            background: var(--card);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mood-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .mood-btn.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Diary Card */
+        .diary-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid #06b6d4;
+        }
+
+        .diary-mood {
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+
+        .diary-title {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Diary Header Banner */
+        .diary-banner {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .diary-banner h3 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .diary-banner p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (min-width: 600px) {
+            .modal {
+                border-radius: 24px;
+                margin: auto;
+            }
+
+            .modal-overlay {
+                align-items: center;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1>✨ Productivity Hub</h1>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="openModal('settingsModal')">⚙️</button>
+        </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+        <button class="tab active" data-tab="journal">
+            <span class="tab-icon">📔</span>
+            S-Journal
+        </button>
+        <button class="tab" data-tab="diary">
+            <span class="tab-icon">📖</span>
+            Diary
+        </button>
+        <button class="tab" data-tab="tasks">
+            <span class="tab-icon">✅</span>
+            Tasks
+        </button>
+        <button class="tab" data-tab="notes">
+            <span class="tab-icon">📝</span>
+            Notes
+        </button>
+        <button class="tab" data-tab="stats">
+            <span class="tab-icon">📊</span>
+            Stats
+        </button>
+    </nav>
+
+    <!-- Content -->
+    <main class="content">
+        <!-- Journal Section (Spaced Repetition) -->
+        <section class="section active" id="journal">
+            <div class="revision-alert" id="revisionAlert" style="display:none;">
+                <h3>🔄 Review These Entries</h3>
+                <div id="revisionList"></div>
+            </div>
+            <div id="journalList"></div>
+        </section>
+
+        <!-- Daily Diary Section (Separate) -->
+        <section class="section" id="diary">
+            <div class="diary-banner">
+                <h3>📖 Daily Diary</h3>
+                <p>Your personal space to write freely</p>
+            </div>
+            <div id="diaryList"></div>
+        </section>
+
+        <!-- Tasks Section -->
+        <section class="section" id="tasks">
+            <div class="countdown-card">
+                <div class="countdown-value" id="countdown">--:--</div>
+                <div class="countdown-label">until bedtime</div>
+            </div>
+
+            <div class="quick-stats">
+                <div class="quick-stat">
+                    <span>📋</span>
+                    <span class="quick-stat-value" id="taskCount">0</span>
+                    <span>tasks</span>
+                </div>
+                <div class="quick-stat">
+                    <span>⏱️</span>
+                    <span class="quick-stat-value" id="totalHours">0h</span>
+                    <span>work</span>
+                </div>
+                <div class="quick-stat">
+                    <span>🎮</span>
+                    <span class="quick-stat-value" id="freeTime">0h</span>
+                    <span>free</span>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <span class="section-title">My Tasks</span>
+                <select id="taskSort" onchange="renderTasks()" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);">
+                    <option value="priority">By Priority</option>
+                    <option value="status">By Status</option>
+                </select>
+            </div>
+            <div id="taskList"></div>
+
+            <div class="section-header" style="margin-top:24px;">
+                <span class="section-title">Free Time Activities</span>
+            </div>
+            <div id="activityList"></div>
+        </section>
+
+        <!-- Notes Section -->
+        <section class="section" id="notes">
+            <div class="chips" id="categoryChips"></div>
+            <div id="notesList"></div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="section" id="stats">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statCompleted">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statJournal">0</div>
+                    <div class="stat-label">Journal Entries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statDiary">0</div>
+                    <div class="stat-label">Diary Entries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statNotes">0</div>
+                    <div class="stat-label">Notes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="completionRate">0%</div>
+                    <div class="stat-label">Task Completion</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title" style="margin-bottom:16px;">📁 Notes by Category</div>
+                <div id="categoryBreakdown"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FAB -->
+    <div class="fab-container">
+        <div class="fab-menu" id="fabMenu">
+            <div class="fab-item">
+                <span class="fab-label">Journal Entry</span>
+                <button class="fab-btn journal" onclick="openAddJournal()">📔</button>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">Daily Diary</span>
+                <button class="fab-btn diary" onclick="openAddDiary()">📖</button>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">New Task</span>
+                <button class="fab-btn task" onclick="openAddTask()">✅</button>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">New Note</span>
+                <button class="fab-btn note" onclick="openAddNote()">📝</button>
+            </div>
+            <div class="fab-item">
+                <span class="fab-label">Activity</span>
+                <button class="fab-btn activity" onclick="openAddActivity()">🎮</button>
+            </div>
+        </div>
+        <button class="fab" id="fabBtn" onclick="toggleFab()">+</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>⚙️ Settings</h2>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span class="setting-icon">🌙</span>
+                        <span>Dark Mode</span>
+                    </div>
+                    <div class="toggle" id="darkToggle" onclick="toggleDarkMode()"></div>
+                </div>
+                <div class="setting-item" style="flex-direction:column;align-items:flex-start;gap:12px;">
+                    <div class="setting-label">
+                        <span class="setting-icon">😴</span>
+                        <span>Sleep Schedule</span>
+                    </div>
+                    <div style="display:flex;gap:12px;width:100%;">
+                        <div style="flex:1;">
+                            <label style="font-size:0.75rem;color:var(--text-light);">Bedtime</label>
+                            <input type="time" id="sleepStart" value="22:00" onchange="saveSleepSettings()">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size:0.75rem;color:var(--text-light);">Wake up</label>
+                            <input type="time" id="sleepEnd" value="06:00" onchange="saveSleepSettings()">
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span class="setting-icon">🎨</span>
+                        <span>Theme Color</span>
+                    </div>
+                    <input type="color" id="themeColor" value="#6366f1" onchange="changeTheme()" style="width:50px;height:36px;padding:2px;border-radius:8px;">
+                </div>
+                <div class="setting-item" style="justify-content:center;">
+                    <button class="btn btn-primary" onclick="window.open('https://ko-fi.com','_blank')">
+                        ☕ Buy Me a Coffee
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost btn-block" onclick="closeModal('settingsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Journal Modal (Spaced Repetition) -->
+    <div class="modal-overlay" id="journalModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2 id="journalModalTitle">📔 New Journal Entry</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>What's on your mind?</label>
+                    <textarea id="journalContent" placeholder="Write your thoughts..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Date (optional backdate)</label>
+                    <input type="date" id="journalDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('journalModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveJournal()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Daily Diary Modal (Separate) -->
+    <div class="modal-overlay" id="diaryModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2 id="diaryModalTitle">📖 Daily Diary</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title (optional)</label>
+                    <input type="text" id="diaryTitle" placeholder="Give this entry a title...">
+                </div>
+                <div class="form-group">
+                    <label>How are you feeling?</label>
+                    <div class="mood-selector" id="moodSelector">
+                        <button type="button" class="mood-btn" data-mood="😊" onclick="selectMood('😊')">😊</button>
+                        <button type="button" class="mood-btn" data-mood="😐" onclick="selectMood('😐')">😐</button>
+                        <button type="button" class="mood-btn" data-mood="😢" onclick="selectMood('😢')">😢</button>
+                        <button type="button" class="mood-btn" data-mood="😡" onclick="selectMood('😡')">😡</button>
+                        <button type="button" class="mood-btn" data-mood="😴" onclick="selectMood('😴')">😴</button>
+                        <button type="button" class="mood-btn" data-mood="🤩" onclick="selectMood('🤩')">🤩</button>
+                        <button type="button" class="mood-btn" data-mood="😰" onclick="selectMood('😰')">😰</button>
+                        <button type="button" class="mood-btn" data-mood="🥰" onclick="selectMood('🥰')">🥰</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Write about your day</label>
+                    <textarea id="diaryContent" placeholder="Dear diary..." style="min-height:150px;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('diaryModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveDiary()">Save Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>✅ New Task</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Task Name</label>
+                    <input type="text" id="taskName" placeholder="What needs to be done?">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Hours</label>
+                        <input type="number" id="taskHours" placeholder="0" step="0.25" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="taskPriority">
+                            <option value="high">🔴 High</option>
+                            <option value="medium" selected>🟡 Medium</option>
+                            <option value="low">🟢 Low</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('taskModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTask()">Add Task</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Note Modal -->
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2 id="noteModalTitle">📝 New Note</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="noteTitle" placeholder="Note title">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="noteCategory" placeholder="Work, Personal, Ideas...">
+                </div>
+                <div class="form-group">
+                    <label>Content (Markdown supported)</label>
+                    <textarea id="noteContent" placeholder="# Heading&#10;**bold** *italic*&#10;- List item"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Preview</label>
+                    <div class="md-preview" id="notePreview">Preview appears here...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('noteModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Activity Modal -->
+    <div class="modal-overlay" id="activityModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>🎮 New Activity</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Activity Name</label>
+                    <input type="text" id="activityName" placeholder="Gaming, Reading, etc.">
+                </div>
+                <div class="form-group">
+                    <label>Hours</label>
+                    <input type="number" id="activityHours" placeholder="0" step="0.25" min="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('activityModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveActivity()">Add Activity</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAPTCHA Modal -->
+    <div class="modal-overlay" id="captchaModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>🔐 Verify Backdate</h2>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-light);margin-bottom:16px;text-align:center;">Solve this to backdate your entry:</p>
+                <div style="font-size:1.5rem;font-weight:700;text-align:center;padding:20px;background:var(--bg);border-radius:12px;margin-bottom:16px;" id="captchaQ"></div>
+                <input type="number" id="captchaAnswer" placeholder="Your answer">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('captchaModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="verifyCaptcha()">Verify</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>⚠️ Confirm Delete</h2>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMsg" style="text-align:center;">Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="btn btn-danger" id="confirmBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Journal Modal -->
+    <div class="modal-overlay" id="editJournalModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>✏️ Edit Entry</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea id="editJournalContent"></textarea>
+                </div>
+                <input type="hidden" id="editJournalId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('editJournalModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="updateJournal()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Diary Modal -->
+    <div class="modal-overlay" id="editDiaryModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <div class="modal-header">
+                <h2>✏️ Edit Diary Entry</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="editDiaryTitle">
+                </div>
+                <div class="form-group">
+                    <label>Mood</label>
+                    <div class="mood-selector" id="editMoodSelector">
+                        <button type="button" class="mood-btn" data-mood="😊" onclick="selectEditMood('😊')">😊</button>
+                        <button type="button" class="mood-btn" data-mood="😐" onclick="selectEditMood('😐')">😐</button>
+                        <button type="button" class="mood-btn" data-mood="😢" onclick="selectEditMood('😢')">😢</button>
+                        <button type="button" class="mood-btn" data-mood="😡" onclick="selectEditMood('😡')">😡</button>
+                        <button type="button" class="mood-btn" data-mood="😴" onclick="selectEditMood('😴')">😴</button>
+                        <button type="button" class="mood-btn" data-mood="🤩" onclick="selectEditMood('🤩')">🤩</button>
+                        <button type="button" class="mood-btn" data-mood="😰" onclick="selectEditMood('😰')">😰</button>
+                        <button type="button" class="mood-btn" data-mood="🥰" onclick="selectEditMood('🥰')">🥰</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Content</label>
+                    <textarea id="editDiaryContent" style="min-height:150px;"></textarea>
+                </div>
+                <input type="hidden" id="editDiaryId">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('editDiaryModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="updateDiary()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // STORAGE FUNCTIONS
+        // =============================================
+        
+        function save(key, val) {
+            try {
+                if (typeof Android !== 'undefined' && Android.saveData) {
+                    Android.saveData(key, val);
+                } else {
+                    localStorage.setItem(key, val);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function load(key) {
+            try {
+                if (typeof Android !== 'undefined' && Android.loadData) {
+                    return Android.loadData(key) || '';
+                }
+                return localStorage.getItem(key) || '';
+            } catch(e) { return ''; }
+        }
+
+        // =============================================
+        // STATE
+        // =============================================
+        
+        let entries = [];          // Spaced repetition journal
+        let diaryEntries = [];     // Daily diary (separate)
+        let tasks = [];
+        let activities = [];
+        let notes = [];
+        let editNoteId = null;
+        let pendingEntry = null;
+        let captcha = { a: 0, b: 0 };
+        let selectedCat = 'all';
+        let selectedMood = '😊';
+        let editMood = '😊';
+
+        // =============================================
+        // INIT
+        // =============================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAll();
+            initTabs();
+            initNotePreview();
+            updateCountdown();
+            setInterval(updateCountdown, 60000);
+        });
+
+        function loadAll() {
+            entries = JSON.parse(load('entries') || '[]');
+            diaryEntries = JSON.parse(load('diaryEntries') || '[]');
+            tasks = JSON.parse(load('tasks') || '[]');
+            activities = JSON.parse(load('freeActivities') || '[]');
+            notes = JSON.parse(load('notes') || '[]');
+
+            // Dark mode
+            if (load('darkMode') === 'true') {
+                document.body.classList.add('dark');
+                document.getElementById('darkToggle').classList.add('active');
+            }
+
+            // Sleep settings
+            document.getElementById('sleepStart').value = load('sleepStart') || '22:00';
+            document.getElementById('sleepEnd').value = load('sleepEnd') || '06:00';
+
+            // Theme color
+            const color = load('themeColor') || '#6366f1';
+            document.getElementById('themeColor').value = color;
+            document.documentElement.style.setProperty('--primary', color);
+            document.querySelector('.header').style.background = color;
+
+            renderAll();
+        }
+
+        function renderAll() {
+            renderJournal();
+            renderDiary();
+            renderTasks();
+            renderActivities();
+            renderNotes();
+            updateStats();
+        }
+
+        // =============================================
+        // TABS
+        // =============================================
+        
+        function initTabs() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                    if (tab.dataset.tab === 'stats') updateStats();
+                });
+            });
+        }
+
+        // =============================================
+        // MODALS
+        // =============================================
+        
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            closeFab();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        document.addEventListener('click', e => {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('active');
+            }
+        });
+
+        // =============================================
+        // FAB
+        // =============================================
+        
+        function toggleFab() {
+            const fab = document.getElementById('fabBtn');
+            const menu = document.getElementById('fabMenu');
+            fab.classList.toggle('open');
+            menu.classList.toggle('open');
+        }
+
+        function closeFab() {
+            document.getElementById('fabBtn').classList.remove('open');
+            document.getElementById('fabMenu').classList.remove('open');
+        }
+
+        // =============================================
+        // JOURNAL (SPACED REPETITION)
+        // =============================================
+        
+        function openAddJournal() {
+            document.getElementById('journalModalTitle').textContent = '📔 New Journal Entry';
+            document.getElementById('journalContent').value = '';
+            document.getElementById('journalDate').value = '';
+            openModal('journalModal');
+        }
+
+        function saveJournal() {
+            const content = document.getElementById('journalContent').value.trim();
+            const dateVal = document.getElementById('journalDate').value;
+            
+            if (!content) return alert('Please write something!');
+            
+            const today = new Date().toISOString().split('T')[0];
+            const date = dateVal || today;
+
+            if (dateVal && dateVal < today) {
+                pendingEntry = { content, date };
+                showCaptcha();
+                return;
+            }
+
+            createEntry(content, date);
+        }
+
+        function createEntry(content, date) {
+            entries.unshift({
+                id: Date.now(),
+                content,
+                date,
+                createdAt: new Date().toISOString()
+            });
+            save('entries', JSON.stringify(entries));
+            closeModal('journalModal');
+            renderJournal();
+            updateStats();
+        }
+
+        function showCaptcha() {
+            captcha.a = Math.floor(Math.random() * 20) + 1;
+            captcha.b = Math.floor(Math.random() * 20) + 1;
+            document.getElementById('captchaQ').textContent = `${captcha.a} + ${captcha.b} = ?`;
+            document.getElementById('captchaAnswer').value = '';
+            closeModal('journalModal');
+            openModal('captchaModal');
+        }
+
+        function verifyCaptcha() {
+            const ans = parseInt(document.getElementById('captchaAnswer').value);
+            if (ans === captcha.a + captcha.b) {
+                closeModal('captchaModal');
+                if (pendingEntry) {
+                    createEntry(pendingEntry.content, pendingEntry.date);
+                    pendingEntry = null;
+                }
+            } else {
+                alert('Wrong answer!');
+            }
+        }
+
+        function renderJournal() {
+            const list = document.getElementById('journalList');
+            const revList = document.getElementById('revisionList');
+            const revAlert = document.getElementById('revisionAlert');
+
+            // Spaced repetition check
+            const today = new Date(); today.setHours(0,0,0,0);
+            const revDays = [1, 3, 7, 14, 30];
+            const revDue = entries.filter(e => {
+                const d = new Date(e.date); d.setHours(0,0,0,0);
+                const diff = Math.floor((today - d) / 86400000);
+                return revDays.includes(diff);
+            });
+
+            if (revDue.length > 0) {
+                revAlert.style.display = 'block';
+                revList.innerHTML = revDue.map(e => {
+                    const d = new Date(e.date); d.setHours(0,0,0,0);
+                    const diff = Math.floor((today - d) / 86400000);
+                    return `
+                        <div class="card" style="border-left:3px solid var(--warning);">
+                            <div class="badge badge-medium" style="margin-bottom:8px;">${diff} days ago</div>
+                            <div class="card-body">${esc(e.content)}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                revAlert.style.display = 'none';
+            }
+
+            if (entries.length === 0) {
+                list.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📔</div>
+                        <h3>No entries yet</h3>
+                        <p>Tap + to write your first journal entry</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by date
+            const sorted = [...entries].sort((a,b) => new Date(b.date) - new Date(a.date));
+            const groups = {};
+            sorted.forEach(e => {
+                if (!groups[e.date]) groups[e.date] = [];
+                groups[e.date].push(e);
+            });
+
+            let html = '';
+            for (const [date, items] of Object.entries(groups)) {
+                html += `<div class="group-header">${formatDate(date)}</div>`;
+                items.forEach(e => {
+                    html += `
+                        <div class="card">
+                            <div class="card-body">${esc(e.content)}</div>
+                            <div class="card-footer">
+                                <button class="btn btn-ghost btn-sm" onclick="editJournal(${e.id})">✏️ Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteJournal(${e.id})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            list.innerHTML = html;
+        }
+
+        function editJournal(id) {
+            const e = entries.find(x => x.id === id);
+            if (e) {
+                document.getElementById('editJournalContent').value = e.content;
+                document.getElementById('editJournalId').value = id;
+                openModal('editJournalModal');
+            }
+        }
+
+        function updateJournal() {
+            const id = parseInt(document.getElementById('editJournalId').value);
+            const content = document.getElementById('editJournalContent').value.trim();
+            if (!content) return alert('Cannot be empty!');
+            
+            const e = entries.find(x => x.id === id);
+            if (e) {
+                e.content = content;
+                save('entries', JSON.stringify(entries));
+                closeModal('editJournalModal');
+                renderJournal();
+            }
+        }
+
+        function deleteJournal(id) {
+            confirm('Delete this journal entry?', () => {
+                entries = entries.filter(e => e.id !== id);
+                save('entries', JSON.stringify(entries));
+                renderJournal();
+                updateStats();
+            });
+        }
+
+        // =============================================
+        // DAILY DIARY (SEPARATE - NO SPACED REPETITION)
+        // =============================================
+
+        function selectMood(mood) {
+            selectedMood = mood;
+            document.querySelectorAll('#moodSelector .mood-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.mood === mood) btn.classList.add('selected');
+            });
+        }
+
+        function selectEditMood(mood) {
+            editMood = mood;
+            document.querySelectorAll('#editMoodSelector .mood-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.mood === mood) btn.classList.add('selected');
+            });
+        }
+
+        function openAddDiary() {
+            document.getElementById('diaryModalTitle').textContent = '📖 Daily Diary';
+            document.getElementById('diaryTitle').value = '';
+            document.getElementById('diaryContent').value = '';
+            selectedMood = '😊';
+            document.querySelectorAll('#moodSelector .mood-btn').forEach(btn => {
+                btn.classList.remove('selected');
+                if (btn.dataset.mood === '😊') btn.classList.add('selected');
+            });
+            openModal('diaryModal');
+        }
+
+        function saveDiary() {
+            const title = document.getElementById('diaryTitle').value.trim() || 'Untitled Entry';
+            const content = document.getElementById('diaryContent').value.trim();
+            
+            if (!content) return alert('Please write something!');
+
+            const today = new Date().toISOString().split('T')[0];
+            
+            diaryEntries.unshift({
+                id: Date.now(),
+                title,
+                content,
+                mood: selectedMood,
+                date: today,
+                createdAt: new Date().toISOString()
+            });
+
+            save('diaryEntries', JSON.stringify(diaryEntries));
+            closeModal('diaryModal');
+            renderDiary();
+            updateStats();
+        }
+
+        function renderDiary() {
+            const list = document.getElementById('diaryList');
+
+            if (diaryEntries.length === 0) {
+                list.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📖</div>
+                        <h3>No diary entries yet</h3>
+                        <p>Tap + to write about your day</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group by date
+            const sorted = [...diaryEntries].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+            const groups = {};
+            sorted.forEach(e => {
+                if (!groups[e.date]) groups[e.date] = [];
+                groups[e.date].push(e);
+            });
+
+            let html = '';
+            for (const [date, items] of Object.entries(groups)) {
+                html += `<div class="group-header">${formatDate(date)}</div>`;
+                items.forEach(e => {
+                    html += `
+                        <div class="diary-card">
+                            <div class="diary-title">
+                                <span class="diary-mood">${e.mood}</span>
+                                <span>${esc(e.title)}</span>
+                            </div>
+                            <div class="card-meta" style="margin-bottom:8px;">${formatTime(e.createdAt)}</div>
+                            <div class="card-body">${esc(e.content)}</div>
+                            <div class="card-footer">
+                                <button class="btn btn-ghost btn-sm" onclick="editDiary(${e.id})">✏️ Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteDiary(${e.id})">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            list.innerHTML = html;
+        }
+
+        function editDiary(id) {
+            const e = diaryEntries.find(x => x.id === id);
+            if (e) {
+                document.getElementById('editDiaryTitle').value = e.title;
+                document.getElementById('editDiaryContent').value = e.content;
+                document.getElementById('editDiaryId').value = id;
+                editMood = e.mood;
+                document.querySelectorAll('#editMoodSelector .mood-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                    if (btn.dataset.mood === e.mood) btn.classList.add('selected');
+                });
+                openModal('editDiaryModal');
+            }
+        }
+
+        function updateDiary() {
+            const id = parseInt(document.getElementById('editDiaryId').value);
+            const title = document.getElementById('editDiaryTitle').value.trim() || 'Untitled Entry';
+            const content = document.getElementById('editDiaryContent').value.trim();
+            
+            if (!content) return alert('Cannot be empty!');
+            
+            const e = diaryEntries.find(x => x.id === id);
+            if (e) {
+                e.title = title;
+                e.content = content;
+                e.mood = editMood;
+                save('diaryEntries', JSON.stringify(diaryEntries));
+                closeModal('editDiaryModal');
+                renderDiary();
+            }
+        }
+
+        function deleteDiary(id) {
+            confirm('Delete this diary entry?', () => {
+                diaryEntries = diaryEntries.filter(e => e.id !== id);
+                save('diaryEntries', JSON.stringify(diaryEntries));
+                renderDiary();
+                updateStats();
+            });
+        }
+
+        // =============================================
+        // TASKS
+        // =============================================
+        
+        function openAddTask() {
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskHours').value = '';
+            document.getElementById('taskPriority').value = 'medium';
+            openModal('taskModal');
+        }
+
+        function saveTask() {
+            const name = document.getElementById('taskName').value.trim();
+            const hours = parseFloat(document.getElementById('taskHours').value) || 0;
+            const priority = document.getElementById('taskPriority').value;
+
+            if (!name) return alert('Enter task name!');
+
+            tasks.push({
+                id: Date.now(),
+                name,
+                hours,
+                priority,
+                done: false,
+                createdAt: new Date().toISOString()
+            });
+
+            save('tasks', JSON.stringify(tasks));
+            closeModal('taskModal');
+            renderTasks();
+            updateStats();
+        }
+
+        function toggleTask(id) {
+            const t = tasks.find(x => x.id === id);
+            if (t) {
+                t.done = !t.done;
+                save('tasks', JSON.stringify(tasks));
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        function deleteTask(id) {
+            confirm('Delete this task?', () => {
+                tasks = tasks.filter(t => t.id !== id);
+                save('tasks', JSON.stringify(tasks));
+                renderTasks();
+                updateStats();
+            });
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            const sort = document.getElementById('taskSort').value;
+
+            let sorted = [...tasks];
+            if (sort === 'priority') {
+                const order = { high: 0, medium: 1, low: 2 };
+                sorted.sort((a,b) => {
+                    if (a.done !== b.done) return a.done ? 1 : -1;
+                    return order[a.priority] - order[b.priority];
+                });
+            } else {
+                sorted.sort((a,b) => a.done - b.done);
+            }
+
+            if (sorted.length === 0) {
+                list.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">✅</div>
+                        <h3>No tasks</h3>
+                        <p>Tap + to add your first task</p>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = sorted.map(t => `
+                    <div class="task-item ${t.done ? 'done' : ''}">
+                        <div class="checkbox ${t.done ? 'checked' : ''}" onclick="toggleTask(${t.id})">
+                            ${t.done ? '✓' : ''}
+                        </div>
+                        <div class="task-content">
+                            <div class="task-name">${esc(t.name)}</div>
+                            <div class="task-info">
+                                <span class="badge badge-${t.priority}">${t.priority}</span>
+                                <span>⏱️ ${t.hours}h</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="deleteTask(${t.id})" style="color:var(--danger);">🗑️</button>
+                    </div>
+                `).join('');
+            }
+
+            // Update stats
+            const remaining = tasks.filter(t => !t.done).length;
+            const totalH = tasks.filter(t => !t.done).reduce((s,t) => s + t.hours, 0);
+            document.getElementById('taskCount').textContent = remaining;
+            document.getElementById('totalHours').textContent = totalH.toFixed(1) + 'h';
+            updateFreeTime();
+        }
+
+        // =============================================
+        // ACTIVITIES
+        // =============================================
+        
+        function openAddActivity() {
+            document.getElementById('activityName').value = '';
+            document.getElementById('activityHours').value = '';
+            openModal('activityModal');
+        }
+
+        function saveActivity() {
+            const name = document.getElementById('activityName').value.trim();
+            const hours = parseFloat(document.getElementById('activityHours').value) || 0;
+
+            if (!name) return alert('Enter activity name!');
+
+            activities.push({ id: Date.now(), name, hours });
+            save('freeActivities', JSON.stringify(activities));
+            closeModal('activityModal');
+            renderActivities();
+            updateFreeTime();
+            updateStats();
+        }
+
+        function deleteActivity(id) {
+            activities = activities.filter(a => a.id !== id);
+            save('freeActivities', JSON.stringify(activities));
+            renderActivities();
+            updateFreeTime();
+            updateStats();
+        }
+
+        function renderActivities() {
+            const list = document.getElementById('activityList');
+            if (activities.length === 0) {
+                list.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px;">No activities planned</p>';
+                return;
+            }
+            list.innerHTML = activities.map(a => `
+                <div class="activity-item">
+                    <span>${esc(a.name)}</span>
+                    <span>${a.hours}h</span>
+                    <button class="btn btn-ghost btn-sm" onclick="deleteActivity(${a.id})">×</button>
+                </div>
+            `).join('');
+        }
+
+        function updateFreeTime() {
+            const sleepStart = document.getElementById('sleepStart').value || '22:00';
+            const [h, m] = sleepStart.split(':').map(Number);
+            const now = new Date();
+            let sleep = new Date(); sleep.setHours(h, m, 0, 0);
+            if (sleep <= now) sleep.setDate(sleep.getDate() + 1);
+
+            const hoursLeft = (sleep - now) / 3600000;
+            const taskH = tasks.filter(t => !t.done).reduce((s,t) => s + t.hours, 0);
+            const actH = activities.reduce((s,a) => s + a.hours, 0);
+            const free = Math.max(0, hoursLeft - taskH - actH);
+
+            document.getElementById('freeTime').textContent = free.toFixed(1) + 'h';
+        }
+
+        function updateCountdown() {
+            const sleepStart = document.getElementById('sleepStart').value || '22:00';
+            const [h, m] = sleepStart.split(':').map(Number);
+            const now = new Date();
+            let sleep = new Date(); sleep.setHours(h, m, 0, 0);
+            if (sleep <= now) sleep.setDate(sleep.getDate() + 1);
+
+            const diff = sleep - now;
+            const hrs = Math.floor(diff / 3600000);
+            const mins = Math.floor((diff % 3600000) / 60000);
+            document.getElementById('countdown').textContent = `${hrs}h ${mins}m`;
+            updateFreeTime();
+        }
+
+        // =============================================
+        // NOTES
+        // =============================================
+        
+        function openAddNote() {
+            editNoteId = null;
+            document.getElementById('noteModalTitle').textContent = '📝 New Note';
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteCategory').value = '';
+            document.getElementById('noteContent').value = '';
+            document.getElementById('notePreview').innerHTML = 'Preview appears here...';
+            openModal('noteModal');
+        }
+
+        function initNotePreview() {
+            document.getElementById('noteContent').addEventListener('input', e => {
+                document.getElementById('notePreview').innerHTML = parseMD(e.target.value);
+            });
+        }
+
+        function parseMD(txt) {
+            if (!txt) return '<span style="color:var(--text-light)">Preview appears here...</span>';
+            let h = esc(txt);
+            h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+            h = h.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+            h = h.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            h = h.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            h = h.replace(/__(.+?)__/g, '<u>$1</u>');
+            h = h.replace(/- \[x\] (.+)/gi, '<div><input type="checkbox" checked disabled> $1</div>');
+            h = h.replace(/- \[ \] (.+)/g, '<div><input type="checkbox" disabled> $1</div>');
+            h = h.replace(/^- (.+)$/gm, '<li>$1</li>');
+            h = h.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+            h = h.replace(/\n/g, '<br>');
+            return h;
+        }
+
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value.trim();
+            const category = document.getElementById('noteCategory').value.trim() || 'General';
+            const content = document.getElementById('noteContent').value.trim();
+
+            if (!title) return alert('Enter a title!');
+
+            if (editNoteId) {
+                const n = notes.find(x => x.id === editNoteId);
+                if (n) {
+                    n.title = title;
+                    n.category = category;
+                    n.content = content;
+                    n.updatedAt = new Date().toISOString();
+                }
+            } else {
+                notes.unshift({
+                    id: Date.now(),
+                    title,
+                    category,
+                    content,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            save('notes', JSON.stringify(notes));
+            closeModal('noteModal');
+            renderNotes();
+            updateStats();
+        }
+
+        function editNote(id) {
+            const n = notes.find(x => x.id === id);
+            if (n) {
+                editNoteId = id;
+                document.getElementById('noteModalTitle').textContent = '✏️ Edit Note';
+                document.getElementById('noteTitle').value = n.title;
+                document.getElementById('noteCategory').value = n.category;
+                document.getElementById('noteContent').value = n.content;
+                document.getElementById('notePreview').innerHTML = parseMD(n.content);
+                openModal('noteModal');
+            }
+        }
+
+        function deleteNote(id) {
+            confirm('Delete this note?', () => {
+                notes = notes.filter(n => n.id !== id);
+                save('notes', JSON.stringify(notes));
+                renderNotes();
+                updateStats();
+            });
+        }
+
+        function filterCat(cat) {
+            selectedCat = cat;
+            renderNotes();
+        }
+
+        function renderNotes() {
+            const list = document.getElementById('notesList');
+            const chips = document.getElementById('categoryChips');
+
+            // Categories
+            const cats = ['all', ...new Set(notes.map(n => n.category))];
+            chips.innerHTML = cats.map(c => `
+                <button class="chip ${selectedCat === c ? 'active' : ''}" onclick="filterCat('${c}')">
+                    ${c === 'all' ? '📚 All' : esc(c)}
+                </button>
+            `).join('');
+
+            // Filter
+            let filtered = notes;
+            if (selectedCat !== 'all') {
+                filtered = notes.filter(n => n.category === selectedCat);
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">📝</div>
+                        <h3>No notes</h3>
+                        <p>Tap + to create your first note</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filtered.map(n => `
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${esc(n.title)}</div>
+                            <div class="card-meta">${timeAgo(n.createdAt)}</div>
+                        </div>
+                        <span class="badge badge-info">${esc(n.category)}</span>
+                    </div>
+                    <div class="md-preview" style="max-height:100px;overflow:hidden;">
+                        ${parseMD(n.content)}
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-ghost btn-sm" onclick="editNote(${n.id})">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteNote(${n.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =============================================
+        // STATS
+        // =============================================
+        
+        function updateStats() {
+            document.getElementById('statTasks').textContent = tasks.length;
+            document.getElementById('statCompleted').textContent = tasks.filter(t => t.done).length;
+            document.getElementById('statJournal').textContent = entries.length;
+            document.getElementById('statDiary').textContent = diaryEntries.length;
+            document.getElementById('statNotes').textContent = notes.length;
+
+            const rate = tasks.length > 0 
+                ? Math.round((tasks.filter(t => t.done).length / tasks.length) * 100)
+                : 0;
+            document.getElementById('completionRate').textContent = rate + '%';
+
+            // Category breakdown
+            const cats = {};
+            notes.forEach(n => cats[n.category] = (cats[n.category] || 0) + 1);
+            const catDiv = document.getElementById('categoryBreakdown');
+            if (Object.keys(cats).length === 0) {
+                catDiv.innerHTML = '<p style="color:var(--text-light);">No notes yet</p>';
+            } else {
+                catDiv.innerHTML = Object.entries(cats).map(([c, count]) => `
+                    <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+                        <span>${esc(c)}</span>
+                        <span style="font-weight:600;">${count}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // =============================================
+        // SETTINGS
+        // =============================================
+        
+        function toggleDarkMode() {
+            const toggle = document.getElementById('darkToggle');
+            document.body.classList.toggle('dark');
+            toggle.classList.toggle('active');
+            save('darkMode', document.body.classList.contains('dark').toString());
+        }
+
+        function saveSleepSettings() {
+            save('sleepStart', document.getElementById('sleepStart').value);
+            save('sleepEnd', document.getElementById('sleepEnd').value);
+            updateCountdown();
+        }
+
+        function changeTheme() {
+            const color = document.getElementById('themeColor').value;
+            document.documentElement.style.setProperty('--primary', color);
+            document.querySelector('.header').style.background = color;
+            save('themeColor', color);
+        }
+
+        // =============================================
+        // CONFIRM DIALOG
+        // =============================================
+        
+        function confirm(msg, callback) {
+            document.getElementById('confirmMsg').textContent = msg;
+            document.getElementById('confirmBtn').onclick = () => {
+                callback();
+                closeModal('confirmModal');
+            };
+            openModal('confirmModal');
+        }
+
+        // =============================================
+        // HELPERS
+        // =============================================
+        
+        function esc(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function formatDate(str) {
+            return new Date(str).toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatTime(iso) {
+            return new Date(iso).toLocaleTimeString(undefined, {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function timeAgo(iso) {
+            const diff = Date.now() - new Date(iso);
+            const mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'Just now';
+            if (mins < 60) return mins + 'm ago';
+            const hrs = Math.floor(mins / 60);
+            if (hrs < 24) return hrs + 'h ago';
+            const days = Math.floor(hrs / 24);
+            if (days < 7) return days + 'd ago';
+            return new Date(iso).toLocaleDateString();
+        }
+    </script>
+</body>
+</html>

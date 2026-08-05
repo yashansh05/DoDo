@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Productivity Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        :root{--primary:#1a73e8;--primary-dark:#1557b0;--primary-light:#e8f0fe;--surface:#ffffff;--background:#f5f5f5;--on-surface:#202124;--on-surface-medium:#5f6368;--on-surface-light:#9aa0a6;--divider:#e0e0e0;--success:#1e8e3e;--warning:#f9ab00;--error:#d93025;--shadow:0 1px 3px rgba(0,0,0,0.12)}
+        body.dark{--primary:#8ab4f8;--primary-dark:#669df6;--primary-light:#1a3a5c;--surface:#0d0d0d;--background:#000000;--on-surface:#e8eaed;--on-surface-medium:#9aa0a6;--on-surface-light:#5f6368;--divider:#1f1f1f;--shadow:none}
+        body{font-family:'Roboto',sans-serif;background:var(--background);color:var(--on-surface);min-height:100vh;font-size:14px;line-height:1.4;background-size:cover;background-position:center;background-attachment:fixed;background-repeat:no-repeat}
+        body:not(.dark){background-image:url('file:///android_asset/light.png')}
+        body.dark{background-image:url('file:///android_asset/dark.png')}
+        
+        .settings-btn{position:fixed;top:10px;right:10px;width:36px;height:36px;border:none;background:var(--surface);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.15);font-size:18px}
+        
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:52px;background:var(--surface);display:flex;border-top:1px solid var(--divider);z-index:100}
+        .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:none;color:var(--on-surface-light);cursor:pointer;font-family:inherit;font-size:10px;font-weight:500;padding:4px 0;position:relative}
+        .nav-item.active{color:var(--primary)}
+        .nav-icon{font-size:18px}
+        
+        .nav-badge{position:absolute;top:6px;right:32%;width:8px;height:8px;background:var(--error);border-radius:50%;display:none;border:1px solid var(--surface)}
+        
+        .content{padding:12px;padding-bottom:70px;padding-top:8px;max-width:500px;margin:0 auto}
+        .section{display:none}.section.active{display:block}
+        
+        .dash-header{text-align:left;padding:12px 0 6px;margin-bottom:8px}
+        .dash-date{font-size:12px;color:var(--on-surface-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+        .dash-greeting{font-size:24px;font-weight:700;margin:2px 0;background:linear-gradient(135deg,var(--primary),#34a853);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        
+        .time-row{display:flex;align-items:center;gap:12px;margin-top:6px;flex-wrap:wrap}
+        .time-block{display:flex;align-items:center;gap:6px}
+        .time-badge{background:#3c4043;color:white;padding:4px 10px;border-radius:20px;font-size:14px;font-weight:700;font-family:'Roboto Mono',monospace}
+        body.dark .time-badge{background:#5f6368}
+        .time-label{font-size:10px;color:var(--on-surface-light)}
+        
+        .dash-card{background:var(--surface);border:1px solid var(--divider);border-radius:8px;padding:10px 6px;text-align:center;cursor:pointer;transition:transform 0.1s}
+        .dash-card:active{transform:scale(0.98)}
+        .dash-card.wide{grid-column:span 3}
+        
+        .stats-wrap{position:relative;border-radius:8px;overflow:hidden;margin-bottom:12px;background:var(--primary)}
+        body.dark .stats-wrap{background:var(--primary-dark)}
+        .stats-card{position:relative;z-index:1;padding:10px 6px;text-align:center;color:white;text-shadow:0 1px 4px rgba(0,0,0,0.5)}
+        .stats-card .stat-val{font-size:22px;font-weight:700;font-family:'Roboto Mono',monospace}
+        .stats-card .stat-lbl{font-size:9px;opacity:0.9;letter-spacing:0.3px}
+        
+        .card{background:var(--surface);border-radius:8px;margin-bottom:8px;border:1px solid var(--divider);overflow:hidden}
+        .card-content{padding:12px}
+        .card-title{font-size:14px;font-weight:500;margin-bottom:4px}
+        .card-text{font-size:13px;color:var(--on-surface-medium);line-height:1.5;white-space:pre-wrap}
+        .card-actions{padding:6px;display:flex;justify-content:flex-end;gap:4px;border-top:1px solid var(--divider)}
+        
+        .chip{display:inline-flex;align-items:center;height:28px;padding:0 10px;background:var(--surface);border:1px solid var(--divider);border-radius:14px;font-size:12px;font-weight:500;color:var(--on-surface-medium);cursor:pointer;font-family:inherit}
+        .chip.active{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+        .chips-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+        
+        .label{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:10px;font-weight:500;text-transform:uppercase}
+        .label-high{background:#fce8e6;color:#c5221f}
+        .label-medium{background:#fef7e0;color:#e37400}
+        .label-low{background:#e6f4ea;color:#137333}
+        .label-info{background:var(--primary-light);color:var(--primary)}
+        .label-review{background:#f3e5f5;color:#7b1fa2}
+        body.dark .label-high{background:#3c1f1e;color:#f28b82}body.dark .label-medium{background:#3c3019;color:#fdd663}body.dark .label-low{background:#1e3620;color:#81c995}body.dark .label-info{background:#1a3a5c;color:#8ab4f8}body.dark .label-review{background:#4a148c;color:#e1bee7}
+        
+        .btn{height:32px;padding:0 12px;border:none;border-radius:4px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;text-transform:uppercase;letter-spacing:0.3px}
+        .btn-filled{background:var(--primary);color:white}
+        .btn-text{background:transparent;color:var(--primary)}
+        .btn-danger{background:transparent;color:var(--error)}
+        
+        .fab{position:fixed;bottom:64px;right:12px;width:48px;height:48px;border-radius:12px;border:none;background:var(--primary);color:white;font-size:24px;cursor:pointer;box-shadow:0 4px 12px rgba(26,115,232,0.4);display:flex;align-items:center;justify-content:center;z-index:99;transition:transform 0.2s, background 0.2s}
+        .fab.active{transform:rotate(45deg);background:var(--error)}
+        
+        .fab-menu{position:fixed;bottom:120px;right:12px;z-index:98;display:none;flex-direction:column;gap:8px;align-items:flex-end}
+        .fab-menu.active{display:flex;animation:fadeInUp 0.2s ease}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        
+        .fab-menu-item{display:flex;align-items:center;gap:10px;cursor:pointer;animation:fadeInUp 0.2s ease backwards}
+        .fab-menu-item:nth-child(1){animation-delay:0.05s}
+        .fab-menu-item:nth-child(2){animation-delay:0.1s}
+        .fab-menu-item:nth-child(3){animation-delay:0.15s}
+        .fab-menu-item:nth-child(4){animation-delay:0.2s}
+        .fab-menu-item:nth-child(5){animation-delay:0.25s}
+        
+        .fab-menu-label{background:var(--surface);color:var(--on-surface);padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,0.15);white-space:nowrap}
+        .fab-menu-btn{width:44px;height:44px;border-radius:50%;border:none;background:var(--surface);font-size:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center}
+        
+        .fab-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:97;display:none}
+        .fab-overlay.active{display:block}
+        
+        .task-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--divider)}
+        .task-item:last-child{border-bottom:none}
+        .task-item.done .task-text{text-decoration:line-through;color:var(--on-surface-light)}
+        .task-item.long-press{background:var(--primary-light)}
+        .checkbox{width:18px;height:18px;border:2px solid var(--on-surface-light);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;color:white}
+        .checkbox.checked{background:var(--primary);border-color:var(--primary)}
+        .task-content{flex:1;min-width:0}
+        .task-text{font-size:13px;word-break:break-word;margin-bottom:2px}
+        .task-meta{display:flex;gap:6px;align-items:center}
+        .task-meta span{font-size:10px;color:var(--on-surface-light)}
+        .task-del-btn{border:none;background:none;color:var(--error);font-size:11px;font-weight:500;cursor:pointer;padding:4px 8px;border-radius:4px;font-family:inherit;text-transform:uppercase;letter-spacing:0.3px}
+        
+        .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+        .section-title{font-size:11px;font-weight:500;color:var(--on-surface-light);text-transform:uppercase;letter-spacing:0.5px}
+        .group-header{font-size:11px;font-weight:500;color:var(--primary);padding:12px 0 6px;text-transform:uppercase}
+        
+        .empty{text-align:center;padding:40px 20px}
+        .empty-icon{font-size:36px;margin-bottom:12px;opacity:0.4}
+        .empty-title{font-size:14px;font-weight:500;margin-bottom:4px}
+        
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;padding:16px}
+        .modal-overlay.active{display:flex}
+        .modal{background:var(--surface);width:100%;max-width:360px;max-height:85vh;border-radius:12px;overflow:hidden}
+        .modal-header{padding:16px 16px 0}
+        .modal-title{font-size:18px;font-weight:500}
+        .modal-body{padding:16px;max-height:60vh;overflow-y:auto}
+        .modal-actions{padding:12px 16px;display:flex;justify-content:flex-end;gap:8px}
+        
+        .form-field{margin-bottom:16px}
+        .form-label{display:block;font-size:11px;font-weight:500;color:var(--on-surface-medium);margin-bottom:6px;text-transform:uppercase}
+        input,select,textarea{width:100%;padding:10px;border:1px solid var(--divider);border-radius:4px;font-size:14px;font-family:inherit;background:var(--surface);color:var(--on-surface)}
+        input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary)}
+        textarea{min-height:80px;resize:vertical}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        
+        .mood-grid{display:flex;gap:6px;flex-wrap:wrap}
+        .mood-btn{width:40px;height:40px;border:2px solid var(--divider);border-radius:8px;background:var(--surface);font-size:20px;cursor:pointer}
+        .mood-btn.selected{border-color:var(--primary);background:var(--primary-light)}
+        
+        .diary-entry{background:var(--surface);border:1px solid var(--divider);border-radius:8px;margin-bottom:8px;overflow:hidden}
+        .diary-header{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--divider)}
+        .diary-mood{font-size:24px}
+        .diary-info{flex:1}
+        .diary-title{font-size:14px;font-weight:500}
+        .diary-time{font-size:11px;color:var(--on-surface-light)}
+        .diary-content{padding:12px;font-size:13px;color:var(--on-surface-medium);line-height:1.5}
+        .diary-section{margin-bottom:12px}
+        .diary-section:last-child{margin-bottom:0}
+        .diary-section-title{font-size:11px;font-weight:500;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+        .diary-section-title.good{color:var(--success)}
+        .diary-section-title.bad{color:var(--error)}
+        .diary-section-title.general{color:var(--primary)}
+        .diary-section-content{white-space:pre-wrap}
+        
+        .activity-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface);border:1px solid var(--divider);border-radius:6px;margin-bottom:6px}
+        .activity-name{font-size:13px}
+        .activity-hours{font-size:13px;font-weight:500;color:var(--success);font-family:'Roboto Mono',monospace}
+        
+        .banner{background:var(--primary-light);border:1px solid var(--primary);border-radius:8px;padding:12px;margin-bottom:12px}
+        .banner-title{font-size:12px;font-weight:500;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+        .banner-count{background:var(--primary);color:white;padding:2px 8px;border-radius:10px;font-size:10px}
+        
+        .settings-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--divider)}
+        .settings-label{font-size:14px}
+        .settings-desc{font-size:11px;color:var(--on-surface-light);margin-top:2px}
+        
+        .toggle{width:44px;height:24px;background:var(--on-surface-light);border-radius:24px;position:relative;cursor:pointer}
+        .toggle.active{background:var(--primary)}
+        .toggle::after{content:'';position:absolute;width:20px;height:20px;background:white;border-radius:50%;top:2px;left:2px;transition:transform 0.2s}
+        .toggle.active::after{transform:translateX(20px)}
+        
+        .list-card{background:var(--surface);border:1px solid var(--divider);border-radius:8px;overflow:hidden}
+        .select-sm{padding:6px 10px;font-size:12px;border-radius:4px;border:1px solid var(--divider);background:var(--surface);color:var(--on-surface)}
+        
+        .load-more{text-align:center;padding:16px}
+        .load-more-btn{padding:10px 24px;border:1px solid var(--primary);background:transparent;color:var(--primary);border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit}
+        
+        .journal-filter{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+        
+        .name-setup{text-align:center;padding:40px 20px}
+        .name-setup-title{font-size:24px;font-weight:700;margin-bottom:8px}
+        .name-setup-sub{font-size:13px;color:var(--on-surface-light);margin-bottom:20px}
+        .name-input-wrap{max-width:280px;margin:0 auto}
+        
+        .section-icon{display:inline-flex;align-items:center;gap:4px}
+        
+        .contact-card{background:var(--background);border:1px solid var(--divider);border-radius:10px;padding:16px;margin-top:8px;text-align:center}
+        .contact-icon{font-size:32px;margin-bottom:8px}
+        .contact-title{font-size:13px;font-weight:500;color:var(--on-surface);margin-bottom:4px}
+        .contact-desc{font-size:11px;color:var(--on-surface-light);margin-bottom:12px}
+        .contact-email-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--primary);color:white;border:none;border-radius:24px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(26,115,232,0.3);text-decoration:none}
+        
+        ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--divider);border-radius:3px}
+    </style>
+</head>
+<body>
+    <button class="settings-btn" onclick="openModal('settingsModal')">⚙️</button>
+
+    <main class="content">
+        <section class="section active" id="home">
+            <div id="nameSetupScreen" style="display:none">
+                <div class="name-setup">
+                    <div style="font-size:48px;margin-bottom:16px">👋</div>
+                    <div class="name-setup-title">Welcome!</div>
+                    <div class="name-setup-sub">What should we call you?</div>
+                    <div class="name-input-wrap">
+                        <input type="text" id="setupNameInput" placeholder="Enter your name" style="text-align:center;font-size:16px">
+                        <button class="btn btn-filled" onclick="saveName()" style="width:100%;margin-top:12px;height:44px">Continue</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="mainDashboard">
+                <div class="dash-header">
+                    <div class="dash-date" id="dashDate"></div>
+                    <div class="dash-greeting" id="dashGreeting">Hello</div>
+                    <div class="time-row">
+                        <div class="time-block">
+                            <span class="time-badge" id="currentTime">00:00:00</span>
+                            <span class="time-label">now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-wrap">
+                    <div class="stats-card">
+                        <div style="display:flex;justify-content:space-around;text-align:center">
+                            <div><div class="stat-val" id="countdown">00:00</div><div class="stat-lbl">TILL SLEEP</div></div>
+                            <div><div class="stat-val" id="taskCount">0</div><div class="stat-lbl">TASKS LEFT</div></div>
+                            <div><div class="stat-val" id="totalHours">0</div><div class="stat-lbl">PLAN HRS</div></div>
+                            <div><div class="stat-val" id="freeTime">0</div><div class="stat-lbl">FREE HRS</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-header" style="margin-top:4px">
+                    <span class="section-title">Tasks Management</span>
+                    <select class="select-sm" id="taskSort" onchange="renderTasks()"><option value="priority">Priority</option><option value="status">Status</option></select>
+                </div>
+                <div id="taskList" style="margin-bottom:14px;"></div>
+
+                <div class="section-header"><span class="section-title">Day Activities Log</span><button class="btn btn-text" onclick="openModal('activityModal')" style="height:24px;font-size:11px">+ Add Activity</button></div>
+                <div id="activityList"></div>
+            </div>
+        </section>
+
+        <section class="section" id="study">
+            <div class="journal-filter">
+                <button class="chip filter-chip active" data-filter="all" onclick="filterStudy('all')">All Entries</button>
+                <button class="chip filter-chip" data-filter="today" onclick="filterStudy('today')">Today</button>
+                <button class="chip filter-chip" data-filter="week" onclick="filterStudy('week')">This Week</button>
+                <button class="chip filter-chip" data-filter="month" onclick="filterStudy('month')">This Month</button>
+            </div>
+            <div id="studyList"></div>
+            <div class="load-more" id="studyLoadMore" style="display:none"><button class="load-more-btn" onclick="loadMoreStudy()">Load More</button></div>
+        </section>
+
+        <section class="section" id="diary">
+            <div id="diaryList"></div>
+            <div class="load-more" id="diaryLoadMore" style="display:none"><button class="load-more-btn" onclick="loadMoreDiary()">Load More</button></div>
+        </section>
+    </main>
+
+    <div class="fab-overlay" id="fabOverlay" onclick="closeFabMenu()"></div>
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-menu-item" onclick="fabAction('task')">
+            <span class="fab-menu-label">New Task</span>
+            <button class="fab-menu-btn">✓</button>
+        </div>
+        <div class="fab-menu-item" onclick="fabAction('study')">
+            <span class="fab-menu-label">Study Entry</span>
+            <button class="fab-menu-btn">📚</button>
+        </div>
+        <div class="fab-menu-item" onclick="fabAction('diary')">
+            <span class="fab-menu-label">Diary Entry</span>
+            <button class="fab-menu-btn">📝</button>
+        </div>
+        <div class="fab-menu-item" onclick="fabAction('activity')">
+            <span class="fab-menu-label">Add Activity</span>
+            <button class="fab-menu-btn">⏱️</button>
+        </div>
+    </div>
+    <button class="fab" id="fab" onclick="toggleFabMenu()">+</button>
+
+    <nav class="bottom-nav">
+        <button class="nav-item active" data-tab="home">
+            <span class="nav-badge" id="badgeHome"></span>
+            <span class="nav-icon">🏠</span><span>Home</span>
+        </button>
+        <button class="nav-item" data-tab="study">
+            <span class="nav-icon">📚</span><span>Study</span>
+        </button>
+        <button class="nav-item" data-tab="diary">
+            <span class="nav-badge" id="badgeDiary"></span>
+            <span class="nav-icon">📝</span><span>Diary</span>
+        </button>
+    </nav>
+
+    <div class="modal-overlay" id="settingsModal"><div class="modal"><div class="modal-header"><div class="modal-title">Settings</div></div><div class="modal-body">
+        <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:8px">
+            <div class="settings-label">Your Name</div>
+            <input type="text" id="settingsName" placeholder="Enter your name" onchange="updateName()">
+        </div>
+        <div class="settings-item"><div><div class="settings-label">Dark Mode</div><div class="settings-desc">AMOLED black</div></div><div class="toggle" id="darkToggle" onclick="toggleDark()"></div></div>
+        <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:10px"><div class="settings-label">Working Hours</div><div class="form-row"><div><label class="form-label">End</label><input type="time" id="sleepStart" value="22:00" onchange="saveSettings()"></div><div><label class="form-label">Start</label><input type="time" id="sleepEnd" value="06:00" onchange="saveSettings()"></div></div></div>
+        <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px">
+            <div class="settings-label">Spaced Repetition</div>
+            <div class="settings-desc" style="margin:0">Integrated auto-tasks via 1, 3, 7, 14, 30, 60, 90, 180, 365 days intervals.</div>
+        </div>
+        <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:6px;border:none;padding-top:0">
+            <div class="contact-card">
+                <div class="contact-icon">💬</div>
+                <div class="contact-title">Contact Developer</div>
+                <button class="contact-email-btn" onclick="openEmail()">✉️ Send Email</button>
+                <div class="contact-email-addr">yashansh@proton.me</div>
+            </div>
+        </div>
+    </div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('settingsModal')">Close</button></div></div></div>
+    
+    <div class="modal-overlay" id="studyModal"><div class="modal"><div class="modal-header"><div class="modal-title">New Study Entry</div></div><div class="modal-body"><div class="form-field"><label class="form-label">What did you learn?</label><textarea id="studyContent" placeholder="Write what you studied..."></textarea></div><div class="form-field"><label class="form-label">Date (optional)</label><input type="date" id="studyDate"></div></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('studyModal')">Cancel</button><button class="btn btn-filled" onclick="saveStudy()">Save</button></div></div></div>
+    
+    <div class="modal-overlay" id="diaryModal"><div class="modal"><div class="modal-header"><div class="modal-title">New Diary Entry</div></div><div class="modal-body">
+        <div class="form-field"><label class="form-label">Title (optional)</label><input type="text" id="diaryTitle" placeholder="Today's summary"></div>
+        <div class="form-field"><label class="form-label">Mood</label><div class="mood-grid" id="moodSelector"><button type="button" class="mood-btn" data-mood="😊" onclick="selectMood('😊')">😊</button><button type="button" class="mood-btn" data-mood="😌" onclick="selectMood('😌')">😌</button><button type="button" class="mood-btn" data-mood="🤔" onclick="selectMood('🤔')">🤔</button><button type="button" class="mood-btn" data-mood="😤" onclick="selectMood('😤')">😤</button><button type="button" class="mood-btn" data-mood="😢" onclick="selectMood('😢')">😢</button></div></div>
+        <div class="form-field"><label class="form-label section-icon"><span style="color:var(--success)">✓</span> Good Things</label><textarea id="diaryGood" placeholder="What went well today?" style="min-height:60px"></textarea></div>
+        <div class="form-field"><label class="form-label section-icon"><span style="color:var(--error)">✗</span> Bad Things</label><textarea id="diaryBad" placeholder="What could be improved?" style="min-height:60px"></textarea></div>
+        <div class="form-field"><label class="form-label section-icon"><span style="color:var(--primary)">📝</span> General Notes (optional)</label><textarea id="diaryContent" placeholder="Any other thoughts..." style="min-height:60px"></textarea></div>
+    </div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('diaryModal')">Cancel</button><button class="btn btn-filled" onclick="saveDiary()">Save</button></div></div></div>
+    
+    <div class="modal-overlay" id="taskModal"><div class="modal"><div class="modal-header"><div class="modal-title">New Task</div></div><div class="modal-body"><div class="form-field"><label class="form-label">Task</label><input type="text" id="taskName" placeholder="What to do?"></div><div class="form-row"><div class="form-field"><label class="form-label">Hours</label><input type="number" id="taskHours" placeholder="0" step="0.5" min="0"></div><div class="form-field"><label class="form-label">Priority</label><select id="taskPriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div></div></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('taskModal')">Cancel</button><button class="btn btn-filled" onclick="saveTask()">Save</button></div></div></div>
+    <div class="modal-overlay" id="editTaskModal"><div class="modal"><div class="modal-header"><div class="modal-title">Edit Task</div></div><div class="modal-body"><div class="form-field"><label class="form-label">Task</label><input type="text" id="editTaskName" placeholder="What to do?"></div><div class="form-row"><div class="form-field"><label class="form-label">Hours</label><input type="number" id="editTaskHours" placeholder="0" step="0.5" min="0"></div><div class="form-field"><label class="form-label">Priority</label><select id="editTaskPriority"><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select></div></div><input type="hidden" id="editTaskId"></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('editTaskModal')">Cancel</button><button class="btn btn-filled" onclick="updateTask()">Save</button></div></div></div>
+    <div class="modal-overlay" id="activityModal"><div class="modal"><div class="modal-header"><div class="modal-title">New Activity</div></div><div class="modal-body"><div class="form-field"><label class="form-label">Activity</label><input type="text" id="activityName" placeholder="Meeting..."></div><div class="form-field"><label class="form-label">Hours</label><input type="number" id="activityHours" placeholder="0" step="0.5" min="0"></div></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('activityModal')">Cancel</button><button class="btn btn-filled" onclick="saveActivity()">Save</button></div></div></div>
+    <div class="modal-overlay" id="captchaModal"><div class="modal"><div class="modal-header"><div class="modal-title">Verify</div></div><div class="modal-body"><p style="margin-bottom:12px;color:var(--on-surface-medium);font-size:13px">Solve to backdate:</p><div style="font-size:20px;font-weight:700;text-align:center;padding:16px;background:var(--background);border-radius:6px;margin-bottom:12px;font-family:'Roboto Mono',monospace" id="captchaQ"></div><input type="number" id="captchaAnswer" placeholder="Answer"></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('captchaModal')">Cancel</button><button class="btn btn-filled" onclick="verifyCaptcha()">OK</button></div></div></div>
+    <div class="modal-overlay" id="confirmModal"><div class="modal"><div class="modal-header"><div class="modal-title">Confirm</div></div><div class="modal-body"><p id="confirmMsg">Delete?</p></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('confirmModal')">Cancel</button><button class="btn btn-danger" id="confirmBtn">Delete</button></div></div></div>
+    <div class="modal-overlay" id="editStudyModal"><div class="modal"><div class="modal-header"><div class="modal-title">Edit</div></div><div class="modal-body"><div class="form-field"><label class="form-label">Content</label><textarea id="editStudyContent"></textarea></div><input type="hidden" id="editStudyId"></div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('editStudyModal')">Cancel</button><button class="btn btn-filled" onclick="updateStudy()">Save</button></div></div></div>
+    <div class="modal-overlay" id="editDiaryModal"><div class="modal"><div class="modal-header"><div class="modal-title">Edit Diary</div></div><div class="modal-body">
+        <div class="form-field"><label class="form-label">Title</label><input type="text" id="editDiaryTitle"></div>
+        <div class="form-field"><label class="form-label">Mood</label><div class="mood-grid" id="editMoodSelector"><button type="button" class="mood-btn" data-mood="😊" onclick="selectEditMood('😊')">😊</button></div></div>
+        <div class="form-field"><label class="form-label section-icon"><span style="color:var(--success)">✓</span> Good Things</label><textarea id="editDiaryGood" style="min-height:60px"></textarea></div>
+        <input type="hidden" id="editDiaryId">
+    </div><div class="modal-actions"><button class="btn btn-text" onclick="closeModal('editDiaryModal')">Cancel</button><button class="btn btn-filled" onclick="updateDiary()">Save</button></div></div></div>
+
+    <script>
+        const $=id=>document.getElementById(id);
+        const save=(k,v)=>{try{typeof Android!=='undefined'&&Android.saveData?Android.saveData(k,v):localStorage.setItem(k,v)}catch(e){}};
+        const load=k=>{try{return typeof Android!=='undefined'&&Android.loadData?Android.loadData(k)||'':localStorage.getItem(k)||''}catch(e){return''}};
+
+        let entries=[],diaryEntries=[],tasks=[],activities=[];
+        let pendingEntry=null,captcha={a:0,b:0};
+        let selectedMood='😊',editMood='😊',currentTab='home';
+        let studyFilter='all',studyPage=0,diaryPage=0;
+        let userName='';
+        let fabMenuOpen=false;
+        const PAGE_SIZE=10;
+        const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const REVIEW_INTERVALS=[1,3,7,14,30,60,90,180,365];
+
+        const escDiv=document.createElement('div');
+        const esc=s=>{escDiv.textContent=s;return escDiv.innerHTML};
+
+        function openEmail(){window.location.href='mailto:yashansh@proton.me?subject=Feedback'}
+
+        function getGreeting(){
+            const h=new Date().getHours();
+            if(h<12)return'Good Morning';if(h<17)return'Good Afternoon';if(h<21)return'Good Evening';return'Good Night';
+        }
+
+        function updateCurrentTime(){
+            const now=new Date();
+            $('currentTime').textContent=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+        }
+
+        function migrateReviewedIntervals(entry){
+            if(!entry.reviewedIntervals) entry.reviewedIntervals=[];
+            entry.reviewedIntervals = entry.reviewedIntervals.map(r=>typeof r==='number'?{interval:r,doneDate:'1970-01-01'}:r);
+        }
+
+        function addLongPressHandler(element, callback) {
+            let timer = null;
+            let isLongPress = false;
+            
+            element.addEventListener('touchstart', function(e) {
+                isLongPress = false;
+                timer = setTimeout(function() {
+                    isLongPress = true;
+                    element.classList.add('long-press');
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    callback();
+                }, 500);
+            }, { passive: true });
+            
+            element.addEventListener('touchend', function() {
+                clearTimeout(timer);
+                setTimeout(function() {
+                    element.classList.remove('long-press');
+                }, 200);
+            }, { passive: true });
+            
+            element.addEventListener('touchmove', function() {
+                clearTimeout(timer);
+                element.classList.remove('long-press');
+            }, { passive: true });
+            
+            element.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return;
+                isLongPress = false;
+                timer = setTimeout(function() {
+                    isLongPress = true;
+                    element.classList.add('long-press');
+                    callback();
+                }, 500);
+            });
+            
+            element.addEventListener('mouseup', function() {
+                clearTimeout(timer);
+                setTimeout(function() {
+                    element.classList.remove('long-press');
+                }, 200);
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                clearTimeout(timer);
+                element.classList.remove('long-press');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded',()=>{
+            entries=JSON.parse(load('entries')||'[]');
+            diaryEntries=JSON.parse(load('diaryEntries')||'[]');
+            tasks=JSON.parse(load('tasks')||'[]');
+            activities=JSON.parse(load('freeActivities')||'[]');
+            userName=load('userName')||'';
+            
+            entries.forEach(e=>migrateReviewedIntervals(e));
+            save('entries',JSON.stringify(entries));
+            
+            if(load('darkMode')==='true'){document.body.classList.add('dark');$('darkToggle').classList.add('active')}
+            $('sleepStart').value=load('sleepStart')||'22:00';$('sleepEnd').value=load('sleepEnd')||'06:00';
+            $('settingsName').value=userName;
+            
+            if(!userName){
+                $('nameSetupScreen').style.display='block';$('mainDashboard').style.display='none';$('fab').style.display='none';
+            }else{
+                $('nameSetupScreen').style.display='none';$('mainDashboard').style.display='block';
+            }
+            
+            document.querySelectorAll('.nav-item').forEach(i=>i.onclick=()=>switchTab(i.dataset.tab));
+            document.querySelectorAll('.modal-overlay').forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.remove('active')});
+            
+            updateDashboard();updateCurrentTime();
+            setInterval(updateCurrentTime,1000);
+            setInterval(()=>{updateDashboard();updateCountdown()},60000);
+        });
+
+        function toggleFabMenu(){
+            fabMenuOpen=!fabMenuOpen;
+            $('fab').classList.toggle('active',fabMenuOpen);$('fabMenu').classList.toggle('active',fabMenuOpen);$('fabOverlay').classList.toggle('active',fabMenuOpen);
+        }
+
+        function closeFabMenu(){
+            fabMenuOpen=false;$('fab').classList.remove('active');$('fabMenu').classList.remove('active');$('fabOverlay').classList.remove('active');
+        }
+
+        function fabAction(type){
+            closeFabMenu();
+            switch(type){
+                case 'study':openModal('studyModal');break;
+                case 'task':openModal('taskModal');break;
+                case 'diary':openAddDiary();break;
+                case 'activity':openModal('activityModal');break;
+            }
+        }
+
+        function saveName(){
+            const name=$('setupNameInput').value.trim();if(!name)return alert('Please enter your name');
+            userName=name;save('userName',userName);$('settingsName').value=userName;
+            $('nameSetupScreen').style.display='none';$('mainDashboard').style.display='block';$('fab').style.display='flex';
+            updateDashboard();
+        }
+
+        function updateName(){const name=$('settingsName').value.trim();if(name){userName=name;save('userName',userName);updateDashboard()}}
+
+        function getSleepTime(){
+            const[h,m]=($('sleepStart').value||'22:00').split(':').map(Number);
+            const now=new Date(),sleep=new Date();sleep.setHours(h,m,0,0);
+            if(sleep<=now)sleep.setDate(sleep.getDate()+1);
+            return sleep;
+        }
+
+        /* GENERATES DYNAMIC STUDY REVIEWS AS TASK OBJECTS 
+           Modified Rule: Interval tasks are kept in view so they can be marked unchecked/undone anytime.
+        */
+        function generateReviewTasks(){
+            const today=new Date();today.setHours(0,0,0,0);const todayStr=today.toISOString().split('T')[0];
+            let reviewTasksList=[];
+            
+            entries.forEach(e=>{
+                const entryDate=new Date(e.date);entryDate.setHours(0,0,0,0);
+                const daysDiff=Math.floor((today-entryDate)/86400000);const reviewed=e.reviewedIntervals||[];
+                
+                for(let interval of REVIEW_INTERVALS){
+                    if(daysDiff >= interval){
+                        const reviewRecord=reviewed.find(r=>r.interval===interval);
+                        if(!reviewRecord){
+                            reviewTasksList.push({
+                                id: `rev-${e.id}-${interval}`,
+                                isReview: true,
+                                entryId: e.id,
+                                interval: interval,
+                                name: `Review: ${e.content.substring(0, 60)}${e.content.length > 60 ? '...' : ''}`,
+                                hours: 0.5,
+                                priority: 'review',
+                                done: false
+                            });
+                            break; 
+                        } else {
+                            reviewTasksList.push({
+                                id: `rev-${e.id}-${interval}`,
+                                isReview: true,
+                                entryId: e.id,
+                                interval: interval,
+                                name: `Review: ${e.content.substring(0, 60)}${e.content.length > 60 ? '...' : ''}`,
+                                hours: 0.5,
+                                priority: 'review',
+                                done: true
+                            });
+                            if (reviewRecord.doneDate !== todayStr) {
+                                break;
+                            }
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            });
+            return reviewTasksList;
+        }
+
+        function toggleReviewTask(entryId, interval, currentStatus){
+            const entry=entries.find(e=>e.id===entryId);
+            if(entry){
+                if(!entry.reviewedIntervals) entry.reviewedIntervals=[];
+                const todayStr = new Date().toISOString().split('T')[0];
+                
+                if(!currentStatus){
+                    entry.reviewedIntervals = entry.reviewedIntervals.filter(r=>r.interval!==interval);
+                    entry.reviewedIntervals.push({interval:interval,doneDate:todayStr});
+                } else {
+                    entry.reviewedIntervals = entry.reviewedIntervals.filter(r=>r.interval!==interval);
+                }
+                save('entries',JSON.stringify(entries));
+                updateDashboard();
+            }
+        }
+
+        function updateDashboard(){
+            const now=new Date(),today=now.toISOString().split('T')[0];
+            $('dashDate').textContent=`${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+            $('dashGreeting').textContent=`${getGreeting()}, ${userName||'there'}`;
+            
+            const activeReviewTasks = generateReviewTasks().filter(t=>!t.done).length;
+            const remainingTasks=tasks.filter(t=>!t.done).length + activeReviewTasks;
+            
+            if(remainingTasks > 0){$('badgeHome').style.display='block'}else{$('badgeHome').style.display='none'}
+            
+            const diaryToday=diaryEntries.some(d=>d.date===today);
+            if(!diaryToday){$('badgeDiary').style.display='block'}else{$('badgeDiary').style.display='none'}
+
+            renderTasks();renderActivities();updateCountdown();
+        }
+
+        function switchTab(tab){
+            closeFabMenu();
+            document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.tab===tab));
+            document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===tab));
+            currentTab=tab;
+            if(tab=='home')updateDashboard();
+            else if(tab==='study'){studyPage=0;renderStudy()}
+            else if(tab==='diary'){diaryPage=0;renderDiary()}
+        }
+
+        function openModal(id){$(id).classList.add('active')}
+        function closeModal(id){$(id).classList.remove('active')}
+        function filterStudy(f){studyFilter=f;studyPage=0;document.querySelectorAll('.filter-chip').forEach(c=>c.classList.toggle('active',c.dataset.filter===f));renderStudy()}
+        function getFilteredEntries(){const today=new Date();today.setHours(0,0,0,0);const todayStr=today.toISOString().split('T')[0];if(studyFilter==='today')return entries.filter(e=>e.date===todayStr);if(studyFilter==='week'){const w=new Date(today);w.setDate(w.getDate()-7);return entries.filter(e=>new Date(e.date)>=w)}if(studyFilter==='month'){const m=new Date(today);m.setMonth(m.getMonth()-1);return entries.filter(e=>new Date(e.date)>=m)}return[...entries]}
+
+        function renderStudy(){
+            const todayStr=new Date().toISOString().split('T')[0];
+            const filtered=getFilteredEntries().sort((a,b)=>new Date(b.date)-new Date(a.date));
+            if(!filtered.length){$('studyList').innerHTML='<div class="empty"><div class="empty-icon">📚</div><div class="empty-title">No entries</div></div>';$('studyLoadMore').style.display='none';return}
+            const toShow=filtered.slice(0,(studyPage+1)*PAGE_SIZE),groups={};toShow.forEach(e=>{(groups[e.date]=groups[e.date]||[]).push(e)});
+            let h='';
+            for(const[d,items]of Object.entries(groups)){
+                h+=`<div class="group-header">${formatDate(d)}</div>`;
+                items.forEach(e=>{
+                    const reviewed=e.reviewedIntervals||[];
+                    const reviewBadges=reviewed.length?`<div style="margin-top:4px;display:flex;gap:3px;flex-wrap:wrap">${reviewed.sort((a,b)=>a.interval-b.interval).map(r=>`<span style="font-size:9px;padding:1px 5px;border-radius:3px;background:${r.doneDate===todayStr?'var(--primary)':'var(--success)'};color:white">${r.interval}d ✓</span>`).join('')}</div>`:'';
+                    h+=`<div class="card"><div class="card-content"><div class="card-text">${esc(e.content)}</div>${reviewBadges}</div><div class="card-actions"><button class="btn btn-text" onclick="editStudy(${e.id})">Edit</button><button class="btn btn-danger" onclick="deleteStudy(${e.id})">Del</button></div></div>`;
+                });
+            }
+            $('studyList').innerHTML=h;$('studyLoadMore').style.display=toShow.length<filtered.length?'block':'none';
+        }
+
+        function loadMoreStudy(){studyPage++;renderStudy()}
+        function saveStudy(){
+            const c=$('studyContent').value.trim(),d=$('studyDate').value,today=new Date().toISOString().split('T')[0];if(!c)return alert('Write something');
+            if(d&&d<today){pendingEntry={content:c,date:d};captcha.a=Math.floor(Math.random()*20)+1;captcha.b=Math.floor(Math.random()*20)+1;$('captchaQ').textContent=`${captcha.a} + ${captcha.b} = ?`;$('captchaAnswer').value='';closeModal('studyModal');openModal('captchaModal');return}
+            createEntry(c,d||today);
+        }
+        function createEntry(c,d){
+            entries.unshift({id:Date.now(),content:c,date:d,createdAt:new Date().toISOString(),reviewedIntervals:[]});
+            save('entries',JSON.stringify(entries));closeModal('studyModal');$('studyContent').value='';$('studyDate').value='';
+            if(currentTab==='study')renderStudy();updateDashboard();
+        }
+        function verifyCaptcha(){if(parseInt($('captchaAnswer').value)===captcha.a+captcha.b){closeModal('captchaModal');if(pendingEntry){createEntry(pendingEntry.content,pendingEntry.date);pendingEntry=null}}else alert('Wrong')}
+        function editStudy(id){const e=entries.find(x=>x.id===id);if(e){$('editStudyContent').value=e.content;$('editStudyId').value=id;openModal('editStudyModal')}}
+        function updateStudy(){const id=+$('editStudyId').value,c=$('editStudyContent').value.trim(),e=entries.find(x=>x.id===id);if(c&&e){e.content=c;save('entries',JSON.stringify(entries));closeModal('editStudyModal');renderStudy()}}
+        function deleteStudy(id){confirmAction('Delete?',()=>{entries=entries.filter(e=>e.id!==id);save('entries',JSON.stringify(entries));if(currentTab==='study')renderStudy();updateDashboard()})}
+
+        function selectMood(m){selectedMood=m;document.querySelectorAll('#moodSelector .mood-btn').forEach(b=>b.classList.toggle('selected',b.dataset.mood===m))}
+        function selectEditMood(m){editMood=m;document.querySelectorAll('#editMoodSelector .mood-btn').forEach(b=>b.classList.toggle('selected',b.dataset.mood===m))}
+        function openAddDiary(){$('diaryTitle').value='';$('diaryGood').value='';$('diaryBad').value='';$('diaryContent').value='';selectedMood='😊';document.querySelectorAll('#moodSelector .mood-btn').forEach(b=>b.classList.toggle('selected',b.dataset.mood==='😊'));openModal('diaryModal')}
+        
+        function saveDiary(){
+            const t=$('diaryTitle').value.trim()||'Untitled',good=$('diaryGood').value.trim(),bad=$('diaryBad').value.trim(),general=$('diaryContent').value.trim();if(!good&&!bad&&!general)return alert('Write something');
+            diaryEntries.unshift({id:Date.now(),title:t,good:good,bad:bad,content:general,mood:selectedMood,date:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()});
+            save('diaryEntries',JSON.stringify(diaryEntries));closeModal('diaryModal');
+            if(currentTab==='diary')renderDiary();updateDashboard();
+        }
+
+        function renderDiary(){
+            if(!diaryEntries.length){$('diaryList').innerHTML='<div class="empty"><div class="empty-icon">📝</div><div class="empty-title">No diary entries</div></div>';$('diaryLoadMore').style.display='none';return}
+            const sorted=[...diaryEntries].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)),toShow=sorted.slice(0,(diaryPage+1)*PAGE_SIZE),groups={};toShow.forEach(e=>{(groups[e.date]=groups[e.date]||[]).push(e)});
+            let h='';
+            for(const[d,items]of Object.entries(groups)){
+                h+=`<div class="group-header">${formatDate(d)}</div>`;
+                items.forEach(e=>{
+                    h+=`<div class="diary-entry"><div class="diary-header"><span class="diary-mood">${e.mood}</span><div class="diary-info"><div class="diary-title">${esc(e.title)}</div><div class="diary-time">${formatTime(e.createdAt)}</div></div></div><div class="diary-content">${e.good?`<div class="diary-section"><div class="diary-section-title good">✓ Good Things</div><div class="diary-section-content">${esc(e.good)}</div></div>`:''}${e.bad?`<div class="diary-section"><div class="diary-section-title bad">✗ Bad Things</div><div class="diary-section-content">${esc(e.bad)}</div></div>`:''}${e.content?`<div class="diary-section"><div class="diary-section-title general">📝 Notes</div><div class="diary-section-content">${esc(e.content)}</div></div>`:''}</div><div class="card-actions"><button class="btn btn-text" onclick="editDiary(${e.id})">Edit</button><button class="btn btn-danger" onclick="deleteDiary(${e.id})">Del</button></div></div>`;
+                });
+            }
+            $('diaryList').innerHTML=h;$('diaryLoadMore').style.display=toShow.length<sorted.length?'block':'none';
+        }
+
+        function loadMoreDiary(){diaryPage++;renderDiary()}
+        function editDiary(id){const e=diaryEntries.find(x=>x.id===id);if(e){$('editDiaryTitle').value=e.title;$('editDiaryGood').value=e.good||'';$('editDiaryId').value=id;editMood=e.mood;openModal('editDiaryModal')}}
+        function updateDiary(){const id=+$('editDiaryId').value,t=$('editDiaryTitle').value.trim()||'Untitled',good=$('editDiaryGood').value.trim(),e=diaryEntries.find(x=>x.id===id);if(good&&e){e.title=t;e.good=good;save('diaryEntries',JSON.stringify(diaryEntries));closeModal('editDiaryModal');renderDiary()}}
+        function deleteDiary(id){confirmAction('Delete?',()=>{diaryEntries=diaryEntries.filter(e=>e.id!==id);save('diaryEntries',JSON.stringify(diaryEntries));renderDiary();updateDashboard()})}
+
+        function saveTask(){const n=$('taskName').value.trim(),h=parseFloat($('taskHours').value)||0,p=$('taskPriority').value;if(!n)return alert('Enter task');tasks.push({id:Date.now(),name:n,hours:h,priority:p,done:false,createdAt:new Date().toISOString()});save('tasks',JSON.stringify(tasks));closeModal('taskModal');$('taskName').value='';$('taskHours').value='';updateDashboard()}
+        
+        function editTask(id){const t=tasks.find(x=>x.id===id);if(t){$('editTaskName').value=t.name;$('editTaskHours').value=t.hours;$('editTaskPriority').value=t.priority;$('editTaskId').value=id;openModal('editTaskModal')}}
+
+        function updateTask(){const id=+$('editTaskId').value,n=$('editTaskName').value.trim(),h=parseFloat($('editTaskHours').value)||0,p=$('editTaskPriority').value;const t=tasks.find(x=>x.id===id);if(n&&t){t.name=n;t.hours=h;t.priority=p;save('tasks',JSON.stringify(tasks));closeModal('editTaskModal');updateDashboard()}}
+
+        function handleTaskToggle(id, isReview, entryId, interval, currentStatus){
+            if(isReview){
+                toggleReviewTask(entryId, interval, currentStatus);
+            } else {
+                const t=tasks.find(x=>x.id===id);
+                if(t){t.done=!t.done;save('tasks',JSON.stringify(tasks));updateDashboard()}
+            }
+        }
+        function deleteTask(id){confirmAction('Delete?',()=>{tasks=tasks.filter(t=>t.id!==id);save('tasks',JSON.stringify(tasks));updateDashboard()})}
+
+        function renderTasks(){
+            const sort=$('taskSort').value,order={high:0,medium:1,low:2,review:3};
+            
+            const revTasks = generateReviewTasks();
+            let allCombined = [...tasks, ...revTasks];
+            
+            if(sort==='priority') {
+                allCombined.sort((a,b)=>a.done!==b.done?a.done?1:-1:order[a.priority]-order[b.priority]);
+            } else {
+                allCombined.sort((a,b)=>a.done-b.done);
+            }
+            
+            $('taskList').innerHTML=allCombined.length?`<div class="list-card">${allCombined.map(t=>`
+                <div class="task-item ${t.done?'done':''}" data-task-id="${t.id}" data-is-review="${!!t.isReview}">
+                    <div class="checkbox ${t.done?'checked':''}" onclick="handleTaskToggle(${typeof t.id==='string'?`'${t.id}'`:t.id}, ${!!t.isReview}, ${t.entryId||0}, ${t.interval||0}, ${t.done})">${t.done?'✓':''}</div>
+                    <div class="task-content">
+                        <div class="task-text">${esc(t.name)}</div>
+                        <div class="task-meta">
+                            ${t.isReview ? `<span class="label label-review">${t.interval}D REVIEW</span>` : `<span class="label label-${t.priority}">${t.priority}</span>`}
+                            <span>${t.hours}h</span>
+                        </div>
+                    </div>
+                    ${t.isReview ? '' : `<button class="task-del-btn" onclick="deleteTask(${t.id})">Del</button>`}
+                </div>`).join('')}</div>`:'<div class="empty"><div class="empty-icon">✓</div><div class="empty-title">All clear! No tasks</div></div>';
+            
+            const remaining=allCombined.filter(t=>!t.done).length;
+            const totalH=allCombined.filter(t=>!t.done).reduce((s,t)=>s+t.hours,0);
+            
+            $('taskCount').textContent=remaining;
+            $('totalHours').textContent=totalH.toFixed(1);
+            updateFreeTime();
+
+            document.querySelectorAll('.task-item:not([data-is-review="true"])').forEach(item => {
+                const taskId = item.dataset.taskId;
+                addLongPressHandler(item, function() {
+                    editTask(parseInt(taskId));
+                });
+            });
+        }
+
+        function saveActivity(){const n=$('activityName').value.trim(),h=parseFloat($('activityHours').value)||0;if(!n)return alert('Enter name');activities.push({id:Date.now(),name:n,hours:h});save('freeActivities',JSON.stringify(activities));closeModal('activityModal');$('activityName').value='';$('activityHours').value='';renderActivities();updateFreeTime()}
+        function deleteActivity(id){activities=activities.filter(a=>a.id!==id);save('freeActivities',JSON.stringify(activities));renderActivities();updateFreeTime()}
+        function renderActivities(){$('activityList').innerHTML=activities.length?activities.map(a=>`<div class="activity-item"><span class="activity-name">${esc(a.name)}</span><span class="activity-hours">${a.hours}h</span><button style="font-size:12px;width:24px;height:24px;border:none;background:none;cursor:pointer" onclick="deleteActivity(${a.id})">×</button></div>`).join(''):'<p style="text-align:center;color:var(--on-surface-light);padding:12px;font-size:12px">No generic activities logged today</p>'}
+        
+        function updateFreeTime(){
+            const sleep=getSleepTime(),hoursLeft=(sleep-new Date())/3600000;
+            const manualTaskH=tasks.filter(t=>!t.done).reduce((s,t)=>s+t.hours,0);
+            const reviewTaskH=generateReviewTasks().filter(t=>!t.done).reduce((s,t)=>s+t.hours,0);
+            const actH=activities.reduce((s,a)=>s+a.hours,0);
+            $('freeTime').textContent=Math.max(0,hoursLeft-manualTaskH-reviewTaskH-actH).toFixed(1);
+        }
+        function updateCountdown(){const sleep=getSleepTime(),diff=sleep-new Date();$('countdown').textContent=`${String(Math.floor(diff/3600000)).padStart(2,'0')}:${String(Math.floor((diff%3600000)/60000)).padStart(2,'0')}`;updateFreeTime()}
+
+        function toggleDark(){document.body.classList.toggle('dark');$('darkToggle').classList.toggle('active');save('darkMode',document.body.classList.contains('dark').toString())}
+        function saveSettings(){save('sleepStart',$('sleepStart').value);save('sleepEnd',$('sleepEnd').value);updateDashboard()}
+        function confirmAction(msg,cb){$('confirmMsg').textContent=msg;$('confirmBtn').onclick=()=>{cb();closeModal('confirmModal')};openModal('confirmModal')}
+        function formatDate(s){const today=new Date().toISOString().split('T')[0],yesterday=new Date(Date.now()-86400000).toISOString().split('T')[0];return s===today?'Today':s===yesterday?'Yesterday':new Date(s).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
+        function formatTime(iso){return new Date(iso).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})}
+    </script>
+</body>
+</html>
