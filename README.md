@@ -28,3 +28,8 @@ Contact: [yashansh@proton.me](mailto:yashansh@proton.me)
 ## License
 
 This project is licensed under the [GPL-3.0 License](LICENSE).
+## Screenshots
+
+![Home widget](Widget.jpg)
+![Home Screen](Home.jpg)
+![Settings](Setting.png)
