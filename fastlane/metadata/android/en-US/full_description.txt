@@ -1,0 +1,11 @@
+DoDo is a privacy-friendly, offline-first productivity app that combines To-Do lists, Spaced Repetition learning, and a personal Diary.
+
+Features:
+* Smart To-Do List with priorities and time tracking.
+* Free Time Tracker that automatically calculates free time.
+* Spaced Repetition System for effective learning/revision.
+* Personal Diary for daily notes.
+* Home Screen Widget for quick access.
+
+Privacy:
+The app is completely offline-first. Cloud Sync is strictly optional, and users can use their own custom hosting/server. It uses AES-256 Encryption so no one can read the data without the key.
